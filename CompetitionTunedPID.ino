@@ -134,7 +134,7 @@ int searchSpeed = 150; //80; //80; //110; //140;  // 110 is too slow for our mot
 // Lap 1 - 16.96 -> 25.55 = 8.59
 
 // Faster speed tests
-// TBD (baseSpeed 240, searchSpeed 150, Kp = 0.05, Ki = 0.0, Kd = 2.75, increased deadband, added derivative filter d*0.7+r*0.3)
+// 7.94 (baseSpeed 240, searchSpeed 150, Kp = 0.05, Ki = 0.0, Kd = 2.75, increased deadband, added derivative filter d*0.7+r*0.3)
 // Lap 1 - 7.94
 // Lap 1 - 7.94 -> 16.26 = 8.32
 // Lap 1 - 16.26 -> 24.52 = 8.26
