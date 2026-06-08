@@ -5,12 +5,33 @@
 // Black ≈ 200–500
 // ======================================================
 
+// Robot dimensions:
+// Distance between wheels: 5"
+// wheel diameter: 2.5"
+// IR sensors are on a radial distance in front of the wheel axis centerline: 2/18"
+// Left and right IR sensors are approximately 3/4" to the left and right of the center sensor.
+// IR sensor height above the track: 5/8"
+// The robot utilizes gearboxes connecting the motor to the tires.
+// With the robot running using baseSpeed of 160, it is able to complete a 132" track in 8.85 seconds = 14.92 inches per second.
+// With the robot running using baseSpeed of 220, it is able to complete a 132" track in 7.88 seconds = 16.75 inches per second.
+
+// Track information:
+// Line width: 11/16"
+// Line minimum radius: 4.5"
+// Track length: 132"
+// # of continuous left turns: 2
+// # of continuous right turns: 1
+// # of straightaways: 1
+
 #include <math.h>
 
 #define ADD_INITIAL_DELAY 0
-#define PRINT_DEBUG_OUTPUT 1
-#define PRINT_OTHER_DEBUG_OUTPUT 1
-#define PRINT_MOTOR_DEBUG_OUTPUT 1
+//#define PRINT_DEBUG_OUTPUT 1
+//#define PRINT_OTHER_DEBUG_OUTPUT 1
+//#define PRINT_MOTOR_DEBUG_OUTPUT 1
+#define PRINT_DEBUG_OUTPUT 0
+#define PRINT_OTHER_DEBUG_OUTPUT 0
+#define PRINT_MOTOR_DEBUG_OUTPUT 0
 
 #define COMPENSATE_FOR_MOTOR_GEAR_FRICTION 0
 
@@ -45,16 +66,6 @@
 // PID SETTINGS
 // ======================================================
 
-// Tuned for higher speed stability
-float Kp = 0.11;  // initial suggested default 0.085  // reduce this value if oscillation (left/right)/wobble occurs.  // increase this if the robot reacts too slowly (is too sluggish)
-float Ki = 0.0000;
-float Kd = 1.80;  // initial suggested default 1.25  // increase this if oscillation (left/right)/wobble occurs
-
-// very initial intentional conservative numbers
-//float Kp = 35.0;
-//float Ki = 0.0;
-//float Kd = 18.0;
-
 // PID variables
 float error = 0;
 float previousError = 0;
@@ -62,21 +73,74 @@ float integral = 0;
 float derivative = 0;
 float correction = 0;
 
-// ======================================================
-// SPEED SETTINGS
-// ======================================================
+// very initial intentional conservative numbers
+//float Kp = 35.0;
+//float Ki = 0.0;
+//float Kd = 18.0;
 
-// Competition speed
-//int baseSpeed = 140; //120; //160; //205;  // 180 is conservative.
-int baseSpeed = 180; //120; //160; //205;  // 180 is conservative.
+// Tuned for higher speed stability
+//float Kp = 0.11;  // initial suggested default 0.085  // reduce this value if oscillation (left/right)/wobble occurs.  // increase this if the robot reacts too slowly (is too sluggish)
+//float Ki = 0.0000;
+//float Kd = 1.80;  // initial suggested default 1.25  // increase this if oscillation (left/right)/wobble occurs
 
+// New suggested values to try from ChatGPT
+//float Kp = 0.06;
+//float Ki = 0.0000;
+//float Kd = 2.50;
 
-// Maximum PWM
-int maxSpeed = 255;
-
+// Speed Settings : Competition speed - very initial setting was 180
+//int baseSpeed = 220;
+//int maxSpeed = 255;
 // Recovery speed
-//int searchSpeed = 100; //80; //80; //110; //140;  // 110 is too slow for our motors.
-int searchSpeed = 110; //80; //80; //110; //140;  // 110 is too slow for our motors.
+//int searchSpeed = 110; //80; //80; //110; //140;  // 110 is too slow for our motors.
+
+// Test values for slower operation (slower speed test)
+//float Kp = 0.07;
+//float Ki = 0.0000;
+//float Kd = 2.5;
+
+// Speed Settings : Competition speed - very initial setting was 180
+//int baseSpeed = 180;
+//int maxSpeed = 255;
+// Recovery speed
+//int searchSpeed = 120; //80; //80; //110; //140;  // 110 is too slow for our motors.
+
+// Test values for faster operation test
+float Kp = 0.05;
+float Ki = 0.0000;
+float Kd = 2.75;
+
+// Speed Settings : Competition speed - very initial setting was 180
+int baseSpeed = 240;
+int maxSpeed = 255;
+// Recovery speed
+int searchSpeed = 150; //80; //80; //110; //140;  // 110 is too slow for our motors.
+
+
+// 7.88 (baseSpeed 220, searchSpeed 110, Kp = 0.11, Ki = 0.0, Kd = 1.8)
+// 7.93 (baseSpeed 200, searchSpeed 110, Kp = 0.11, Ki = 0.0, Kd = 1.8)
+// 7.99 (baseSpeed 220, searchSpeed 110, Kp = 0.11, Ki = 0.0, Kd = 1.8)
+// 8.85 (baseSpeed 160, searchSpeed 110, Kp = 0.11, Ki = 0.0, Kd = 1.8)
+
+// 8.09 (baseSpeed 220, searchSpeed 110, Kp = 0.06, Ki = 0.0, Kd = 2.5)
+// 8.09 (baseSpeed 220, searchSpeed 110, Kp = 0.06, Ki = 0.0, Kd = 2.5)
+
+// 7.84 (baseSpeed 220, searchSpeed 110, Kp = 0.06, Ki = 0.0, Kd = 2.5, increased deadband)
+// 7.80 (baseSpeed 220, searchSpeed 110, Kp = 0.06, Ki = 0.0, Kd = 2.5, increased deadband, added derivative filter d*0.7+r*0.3)
+
+// Slower speed tests
+// Lap 1 - 8.33 (baseSpeed 180, searchSpeed 120, Kp = 0.07, Ki = 0.0, Kd = 2.5, increased deadband, added derivative filter d*0.7+r*0.3)
+// Lap 1 - 8.33 -> 16.96 = 8.63
+// Lap 1 - 16.96 -> 25.55 = 8.59
+
+// Faster speed tests
+// TBD (baseSpeed 240, searchSpeed 150, Kp = 0.05, Ki = 0.0, Kd = 2.75, increased deadband, added derivative filter d*0.7+r*0.3)
+// Lap 1 - 7.94
+// Lap 1 - 7.94 -> 16.26 = 8.32
+// Lap 1 - 16.26 -> 24.52 = 8.26
+
+// ONE last test to try: adjust the speedReduction code to divide the error by 12 (instead of 6), and use a min of 40 (instead of 60)
+// TODO
 
 // ======================================================
 // SENSOR CALIBRATION
@@ -159,6 +223,18 @@ void loop()
   if (!loopSequenceDone) {
 
     // Loop sequence: 250 ms intervals
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(250);
+
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(250);
+
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(250);
+
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(250);
+
     digitalWrite(LED_BUILTIN, HIGH);
     delay(250);
 
@@ -264,6 +340,12 @@ void loop()
 
   error = (float)weightedSum / total;
 
+  // Additional test code #2 - Add a dead zone.
+  if (fabs(error) < 50)
+  {
+    error = 0;
+  }
+
   lastKnownPosition = error;
 
   // --------------------------------------------------
@@ -275,12 +357,21 @@ void loop()
   // Anti-windup
   integral = constrain(integral, -3000, 3000);
 
-  derivative = error - previousError;
+  //derivative = error - previousError;
+
+  // Test #3 Derivative filter
+  float rawDerivative =
+      error - previousError;
+
+  derivative =
+      derivative * 0.7 +
+      rawDerivative * 0.3;
 
   correction =
       (Kp * error) +
       (Ki * integral) +
       (Kd * derivative);
+
 
   previousError = error;
 
@@ -293,6 +384,10 @@ void loop()
 //      min(abs(error) / 6, 60);
 int speedReduction =
     min((int)(fabs(error) / 6.0), 60);
+
+// TODO one more thing to try
+//int speedReduction =
+//    min(abs(error) / 12, 40);
 
   int adjustedBaseSpeed =
       baseSpeed - speedReduction;
